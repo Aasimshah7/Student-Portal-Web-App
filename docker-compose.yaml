@@ -1,0 +1,65 @@
+version: '3.9'
+
+services:
+  # PostgreSQL Database Service
+  database:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Persist database data
+    networks:
+      - backend  # Attached to backend network only
+
+  # Adminer Web Interface for PostgreSQL
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8091:8080"  # Map Adminer to port 8091 on the host
+    depends_on:
+      - database  # Start only after the database service is running
+    networks:
+      - backend  # Attached to backend network only
+
+  # FastAPI Service
+  api:
+    build:
+      context: ./api  # Directory where the API code (Dockerfile, etc.) is located
+      dockerfile: Dockerfile  # API Dockerfile
+    volumes:
+      - ./api:/app  # Attach a volume to ensure code changes are reflected
+    depends_on:
+      - database  # Depends on the database to start
+    networks:
+      - backend  # Attach to backend network
+      - frontend  # Attach to frontend network
+    environment:  # Ensure API has access to environment variables
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
+
+  # Flask Web App Service
+  web-app:
+    build:
+      context: ./web-app  # Directory where the web-app code (Dockerfile, etc.) is located
+      dockerfile: Dockerfile  # Web-app Dockerfile
+    volumes:
+      - ./web-app:/app  # Attach a volume to avoid restarting after changes
+    ports:
+      - "8090:5000"  # Map Flask app port to 8090 on the host
+    depends_on:
+      - api  # Depends on API and database
+      - database
+    networks:
+      - frontend  # Attached to frontend network only
+
+# Define Networks
+networks:
+  backend:
+  frontend:
+
+# Define Volumes
+volumes:
+  postgres_data:
