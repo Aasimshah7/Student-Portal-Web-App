@@ -21,8 +21,8 @@ Ensure you have the following installed on your system:
 
 #### **1. Clone the Repository**  
 ```sh  
-git clone [<repository-url>  ](https://github.com/Aasimshah7/Student-Portal-Web-App)
-cd <repository-name>  
+git clone https://github.com/Aasimshah7/Student-Portal-Web-App.git
+cd Student-Portal-Web-App 
 ```
 
 #### **2. Build and Run with Docker Compose**  
